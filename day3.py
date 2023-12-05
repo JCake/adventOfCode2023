@@ -154,19 +154,14 @@ def isPartNumber(aSearchArea):
     return len(re.findall(r'[^0-9\\.]', aSearchArea)) > 0
 def updatePotentialGears(aSearchArea, lineNum, aSearchStart, potentGearsWPartNumbers):
     gearSearchStart = 0
-    while gearSearchStart < len(aSearchArea):
-        try:
-            searchAreaIndex = aSearchArea.index('*', gearSearchStart)
-            potentialGearKey = str(lineNum) + ',' + str(aSearchStart + searchAreaIndex)
-            try:
-                existingParts = potentGearsWPartNumbers[potentialGearKey];
-                existingParts.append(number);
-            except KeyError:
-                potentGearsWPartNumbers[potentialGearKey] = [number];
-            gearSearchStart = searchAreaIndex + 1
-        except ValueError:
-            gearSearchStart = len(aSearchArea)
-            break
+    while '*' in aSearchArea[gearSearchStart:]:
+        searchAreaIndex = aSearchArea.index('*', gearSearchStart)
+        potentialGearKey = str(lineNum) + ',' + str(aSearchStart + searchAreaIndex)
+        if potentialGearKey in potentGearsWPartNumbers:
+            potentGearsWPartNumbers[potentialGearKey].append(number);
+        else:
+            potentGearsWPartNumbers[potentialGearKey] = [number];
+        gearSearchStart = searchAreaIndex + 1
     return
 lines = re.split("\n+", input2)
 numLines = len(lines)
