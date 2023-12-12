@@ -383,5 +383,5 @@ for seedRangeIndex in range(0,int(len(seeds)/2)):
             minLocation = curVal
             print(minLocation)
 print(minLocation)
-               
+# Got the answer of 46294175 - this was correct            
     
