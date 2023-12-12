@@ -226,9 +226,9 @@ humidity-to-location map:
 2906475696 3973741766 54270895
 593974860 2074095641 171967880
 1732757471 1613910675 460184966""";
-sections = re.split("\n\n+", input1)
+sections = re.split("\n\n+", input2)
 seeds = re.split(r"\s+",sections[0].split(": ")[1])
-minLocation = 46294181; # starting with value found in previous runs
+minLocation = 46294181; # starting with value found in previous runs, but not correct
 def findSourceStart(aSection):
     return aSection['sourceStart']
 def findDestStart(aSection):
@@ -250,138 +250,138 @@ for section in sections[1:]:
     print('one update done')
 print('made overallMap')
 
-overallSortedMap = list(sortedSections[0]);
-for section in sortedSections[1:2]:
-    
-    for overallEntry in overallSortedMap:
-        if overallEntry['destStart'] > overallEntry['destEnd']:
-            destSwap = overallEntry['destStart'];
-            overallEntry['destStart'] = overallEntry['destEnd'];
-            overallEntry['destEnd'] = destSwap;
-            sourceSwap = overallEntry['sourceStart'];
-            overallEntry['sourceStart'] = overallEntry['sourceEnd'];
-            overallEntry['sourceEnd'] = sourceSwap;
-    overallSortedMap.sort(key=findDestStart);
-
-    for sectionEntry in section:
-        if sectionEntry['sourceStart'] > sectionEntry['sourceEnd']:
-            destSwap = sectionEntry['destStart'];
-            sectionEntry['destStart'] = sectionEntry['destEnd'];
-            sectionEntry['destEnd'] = sectionEntry;
-            sourceSwap = sectionEntry['sourceStart'];
-            sectionEntry['sourceStart'] = sectionEntry['sourceEnd'];
-            sectionEntry['sourceEnd'] = sourceSwap;
-    section.sort(key=findSourceStart);
-    
-    updatedOverallMap = [];
-    overallIndex = 0;
-    overallValue = overallSortedMap[overallIndex]['destStart'];
-    sectionIndex = 0;
-    nextSectionValue = section[sectionIndex]['sourceStart'];
-    while sectionIndex < len(section) and overallIndex < len(overallSortedMap):
-        if overallValue < nextSectionValue:
-            sourceStart = overallSortedMap[overallIndex]['sourceStart'] + (overallValue - overallSortedMap[overallIndex]['destStart']);
-            sourceEnd = min(nextSectionValue, overallSortedMap[overallIndex]['sourceEnd']);
-            destStart = overallValue;
-            destEnd = destStart + (sourceEnd - sourceStart);
-            updatedOverallMap.append({'sourceStart':sourceStart,'sourceEnd':sourceEnd,'destStart':destStart,'destEnd':destEnd});
-            if destEnd > overallValue:
-                overallValue = destEnd + 1
-            else:
-                overallValue = overallValue + 1;
-        elif nextSectionValue < overallValue:
-            sourceStart = nextSectionValue;
-            sourceEnd = min(section[sectionIndex]['sourceEnd'], overallValue);
-            destStart = section[sectionIndex]['destStart'];
-            destEnd = destStart + (sourceEnd - sourceStart);
-            updatedOverallMap.append({'sourceStart':sourceStart,'sourceEnd':sourceEnd,'destStart':destStart,'destEnd':destEnd});
-            if sourceEnd > nextSectionValue:
-                nextSectionValue = sourceEnd + 1;
-            else:
-                nextSectionValue += 1;
-        else:
-            # equal
-            sourceStart = overallSortedMap[overallIndex]['sourceStart'] + (overallValue - overallSortedMap[overallIndex]['destStart']);
-            sourceEnd = sourceStart + min(overallSortedMap[overallIndex]['destEnd'] - overallValue, section[sectionIndex]['sourceEnd'] - nextSectionValue);
-            destStart = section[sectionIndex]['destStart'] + (nextSectionValue - section[sectionIndex]['sourceStart']);
-            destEnd = destStart + (sourceEnd - sourceStart);
-            updatedOverallMap.append({'sourceStart':sourceStart,'sourceEnd':sourceEnd,'destStart':destStart,'destEnd':destEnd});
-            if sourceEnd > nextSectionValue:
-                nextSectionValue = sourceEnd + 1;
-            else:
-                nextSectionValue += 1;
-            if destEnd > overallValue:
-                overallValue = destEnd + 1
-            else:
-                overallValue += 1;
-        if nextSectionValue >= section[sectionIndex]['sourceEnd']:
-            sectionIndex += 1;
-            if sectionIndex < len(section):
-                nextSectionValue = section[sectionIndex]['sourceStart'];
-            else:
-                nextSectionValue = 9999999999999999; # really big number
-        if overallValue >= overallSortedMap[overallIndex]['destEnd']:
-            overallIndex += 1;
-            if overallIndex < len(overallSortedMap):
-                overallValue = overallSortedMap[overallIndex]['destStart'];
-            else:
-                overallValue = 99999999999999; # really big number
-    overallSortedMap = updatedOverallMap;
-    print('one update done')
-overallSortedMap.sort(key=findDestStart);
-print('made overallMap')
-   
-def findStart(seedRange):
-    return seedRange['start'];
-seedRanges = []
-for seedRangeIndex in range(0,int(len(seeds)/2)):
-    seedStart = int(seeds[seedRangeIndex * 2]);
-    seedRange = int(seeds[seedRangeIndex * 2 + 1]);
-    seedRanges.append({'start': seedStart,'end':seedStart + seedRange})
-seedRanges.sort(key=findStart);
-   
-print(overallSortedMap);
-for part in overallSortedMap:
-    found = False;
-    for i in range(part['sourceStart'], part['sourceEnd']):
-        j = 0;
-        while j < len(seedRanges) and seedRanges[j]['start'] < i:
-            j += 1;
-        if j < len(seedRanges) and seedRanges[j]['end'] < i:
-            print(part['destEnd'] + i - part['sourceStart']);
-            found = True;
-            break;
-    if found:
-        break;
-        
-
-# def findModifier(seed, sortedSection):
-#     if(len(sortedSection) == 0):
-#         return 0
-#     middleIndex = math.floor(len(sortedSection)/2);
-#     middle = sortedSection[middleIndex]
-#     if seed >= middle['sourceStart']:
-#         if seed < middle['sourceEnd']:
-#             return middle['diff']
+# overallSortedMap = list(sortedSections[0]);
+# for section in sortedSections[1:2]:
+#     
+#     for overallEntry in overallSortedMap:
+#         if overallEntry['destStart'] > overallEntry['destEnd']:
+#             destSwap = overallEntry['destStart'];
+#             overallEntry['destStart'] = overallEntry['destEnd'];
+#             overallEntry['destEnd'] = destSwap;
+#             sourceSwap = overallEntry['sourceStart'];
+#             overallEntry['sourceStart'] = overallEntry['sourceEnd'];
+#             overallEntry['sourceEnd'] = sourceSwap;
+#     overallSortedMap.sort(key=findDestStart);
+# 
+#     for sectionEntry in section:
+#         if sectionEntry['sourceStart'] > sectionEntry['sourceEnd']:
+#             destSwap = sectionEntry['destStart'];
+#             sectionEntry['destStart'] = sectionEntry['destEnd'];
+#             sectionEntry['destEnd'] = sectionEntry;
+#             sourceSwap = sectionEntry['sourceStart'];
+#             sectionEntry['sourceStart'] = sectionEntry['sourceEnd'];
+#             sectionEntry['sourceEnd'] = sourceSwap;
+#     section.sort(key=findSourceStart);
+#     
+#     updatedOverallMap = [];
+#     overallIndex = 0;
+#     overallValue = overallSortedMap[overallIndex]['destStart'];
+#     sectionIndex = 0;
+#     nextSectionValue = section[sectionIndex]['sourceStart'];
+#     while sectionIndex < len(section) and overallIndex < len(overallSortedMap):
+#         if overallValue < nextSectionValue:
+#             sourceStart = overallSortedMap[overallIndex]['sourceStart'] + (overallValue - overallSortedMap[overallIndex]['destStart']);
+#             sourceEnd = min(nextSectionValue, overallSortedMap[overallIndex]['sourceEnd']);
+#             destStart = overallValue;
+#             destEnd = destStart + (sourceEnd - sourceStart);
+#             updatedOverallMap.append({'sourceStart':sourceStart,'sourceEnd':sourceEnd,'destStart':destStart,'destEnd':destEnd});
+#             if destEnd > overallValue:
+#                 overallValue = destEnd + 1
+#             else:
+#                 overallValue = overallValue + 1;
+#         elif nextSectionValue < overallValue:
+#             sourceStart = nextSectionValue;
+#             sourceEnd = min(section[sectionIndex]['sourceEnd'], overallValue);
+#             destStart = section[sectionIndex]['destStart'];
+#             destEnd = destStart + (sourceEnd - sourceStart);
+#             updatedOverallMap.append({'sourceStart':sourceStart,'sourceEnd':sourceEnd,'destStart':destStart,'destEnd':destEnd});
+#             if sourceEnd > nextSectionValue:
+#                 nextSectionValue = sourceEnd + 1;
+#             else:
+#                 nextSectionValue += 1;
 #         else:
-#             return findModifier(seed,sortedSection[middleIndex+1:])
-#     else:
-#         return findModifier(seed,sortedSection[:middleIndex])
+#             # equal
+#             sourceStart = overallSortedMap[overallIndex]['sourceStart'] + (overallValue - overallSortedMap[overallIndex]['destStart']);
+#             sourceEnd = sourceStart + min(overallSortedMap[overallIndex]['destEnd'] - overallValue, section[sectionIndex]['sourceEnd'] - nextSectionValue);
+#             destStart = section[sectionIndex]['destStart'] + (nextSectionValue - section[sectionIndex]['sourceStart']);
+#             destEnd = destStart + (sourceEnd - sourceStart);
+#             updatedOverallMap.append({'sourceStart':sourceStart,'sourceEnd':sourceEnd,'destStart':destStart,'destEnd':destEnd});
+#             if sourceEnd > nextSectionValue:
+#                 nextSectionValue = sourceEnd + 1;
+#             else:
+#                 nextSectionValue += 1;
+#             if destEnd > overallValue:
+#                 overallValue = destEnd + 1
+#             else:
+#                 overallValue += 1;
+#         if nextSectionValue >= section[sectionIndex]['sourceEnd']:
+#             sectionIndex += 1;
+#             if sectionIndex < len(section):
+#                 nextSectionValue = section[sectionIndex]['sourceStart'];
+#             else:
+#                 nextSectionValue = 9999999999999999; # really big number
+#         if overallValue >= overallSortedMap[overallIndex]['destEnd']:
+#             overallIndex += 1;
+#             if overallIndex < len(overallSortedMap):
+#                 overallValue = overallSortedMap[overallIndex]['destStart'];
+#             else:
+#                 overallValue = 99999999999999; # really big number
+#     overallSortedMap = updatedOverallMap;
+#     print('one update done')
+# overallSortedMap.sort(key=findDestStart);
+# print('made overallMap')
+#    
+# def findStart(seedRange):
+#     return seedRange['start'];
+# seedRanges = []
 # for seedRangeIndex in range(0,int(len(seeds)/2)):
 #     seedStart = int(seeds[seedRangeIndex * 2]);
 #     seedRange = int(seeds[seedRangeIndex * 2 + 1]);
-#     # part 1 just iterated over each item in 'seeds', unlike this code for part 2
-#     # playing with the range to try to more quickly find most likely smallest result
-#     for seed in range(seedStart+9, seedStart + seedRange, 37):
-#         curVal = int(seed)
-#         for sortedSection in sortedSections:
-#             curVal += findModifier(curVal, sortedSection)
-#         if curVal < 0:
-#             print(curVal)
-#             print(seed)
-#         elif curVal < minLocation:
-#             minLocation = curVal
-#             print(minLocation)
-# print(minLocation)
+#     seedRanges.append({'start': seedStart,'end':seedStart + seedRange})
+# seedRanges.sort(key=findStart);
+#    
+# print(overallSortedMap);
+# for part in overallSortedMap:
+#     found = False;
+#     for i in range(part['sourceStart'], part['sourceEnd']):
+#         j = 0;
+#         while j < len(seedRanges) and seedRanges[j]['start'] < i:
+#             j += 1;
+#         if j < len(seedRanges) and seedRanges[j]['end'] < i:
+#             print(part['destEnd'] + i - part['sourceStart']);
+#             found = True;
+#             break;
+#     if found:
+#         break;
+        
+
+def findModifier(seed, sortedSection):
+    if(len(sortedSection) == 0):
+        return 0
+    middleIndex = math.floor(len(sortedSection)/2);
+    middle = sortedSection[middleIndex]
+    if seed >= middle['sourceStart']:
+        if seed < middle['sourceEnd']:
+            return middle['diff']
+        else:
+            return findModifier(seed,sortedSection[middleIndex+1:])
+    else:
+        return findModifier(seed,sortedSection[:middleIndex])
+for seedRangeIndex in range(0,int(len(seeds)/2)):
+    seedStart = int(seeds[seedRangeIndex * 2]);
+    seedRange = int(seeds[seedRangeIndex * 2 + 1]);
+    # part 1 just iterated over each item in 'seeds', unlike this code for part 2
+    # playing with the range to try to more quickly find most likely smallest result
+    for seed in range(seedStart+17, seedStart + seedRange, 19):
+        curVal = int(seed)
+        for sortedSection in sortedSections:
+            curVal += findModifier(curVal, sortedSection)
+        if curVal < 0:
+            print(curVal)
+            print(seed)
+        elif curVal < minLocation:
+            minLocation = curVal
+            print(minLocation)
+print(minLocation)
                
     
