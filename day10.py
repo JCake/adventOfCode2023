@@ -159,7 +159,27 @@ input4 = '''...........
 .|..|.|..|.
 .L--J.L--J.
 ...........'''
-strGrid = input4;
+input5 = '''.F----7F7F7F7F-7....
+.|F--7||||||||FJ....
+.||.FJ||||||||L7....
+FJL7L7LJLJ||LJ.L-7..
+L--J.L7...LJS7F-7L7.
+....F-J..F7FJ|L7L7L7
+....L7.F7||L7|.L7L7|
+.....|FJLJ|FJ|F7|.LJ
+....FJL-7.||.||||...
+....L---J.LJ.LJLJ...'''
+input6 = '''FF7FSF7F7F7F7F7F---7
+L|LJ||||||||||||F--J
+FL-7LJLJ||||||LJL-77
+F--JF--7||LJLJ7F7FJ-
+L---JF-JLJ.||-FJLJJ7
+|F|F-JF---7F7-L7L|7|
+|FFJF7L7F-JF7|JL---7
+7-L-JL7||F7|L7F-7F7|
+L.L7LFJ|||||FJL7||LJ
+L7JLJL-JLJLJL--JLJ.L''';
+strGrid = input5;
 grid = [list(row) for row in re.split("\n+", strGrid)];
 rowCount = len(grid)
 colCount = len(grid[0])
@@ -171,35 +191,18 @@ steps = 0;
 prevRowIndex = startRowIndex;
 prevColIndex = startColIndex;
 nextRowIndex = startRowIndex;
-nextColIndex = startColIndex + 1;
+nextColIndex = startColIndex + 1; # +1 for all but input6
 minRowIndex = startRowIndex;
 maxRowIndex = startRowIndex;
-minColIndex = startColIndex;
-maxColIndex = startColIndex + 1;
-rightOrLeft = 'R';
-upOrDown = '';
-enclosedPoints = set([])
-def lookUpFrom(rowIndex,colIndex):
-    possibleGroundRowIndex = rowIndex - 1;
-    while(possibleGroundRowIndex >= 0 and grid[possibleGroundRowIndex][colIndex] == '.'):
-        enclosedPoints.add(f'{possibleGroundRowIndex},{colIndex}');
-        possibleGroundRowIndex -= 1;
-def lookDownFrom(rowIndex,colIndex):
-    possibleGroundRowIndex = rowIndex + 1;
-    while(possibleGroundRowIndex < len(grid) and grid[possibleGroundRowIndex][colIndex] == '.'):
-        enclosedPoints.add(f'{possibleGroundRowIndex},{colIndex}');
-        possibleGroundRowIndex += 1;
-def lookRightFrom(rowIndex,colIndex):
-    possibleGroundColIndex = colIndex + 1;
-    while(possibleGroundColIndex < len(grid[0]) and grid[rowIndex][possibleGroundColIndex] == '.'):
-        enclosedPoints.add(f'{rowIndex},{possibleGroundColIndex}');
-        possibleGroundColIndex += 1;
-def lookLeftFrom(rowIndex,colIndex):
-    possibleGroundColIndex = rowIndex - 1;
-    while(possibleGroundColIndex > 0 and grid[rowIndex][possibleGroundColIndex] == '.'):
-        enclosedPoints.add(f'{rowIndex},{possibleGroundColIndex}');
-        possibleGroundColIndex -= 1; 
+minColIndex = startColIndex; # start for all but input6
+maxColIndex = startColIndex+1; #+1 for all but input6
+mainCircut = set([f'{startRowIndex}{startColIndex}']);
 while(not (nextRowIndex == startRowIndex and nextColIndex == startColIndex)):
+    mainCircut.add(f'{nextRowIndex}{nextColIndex}');
+    minRowIndex = min(minRowIndex, nextRowIndex);
+    maxRowIndex = max(maxRowIndex, nextRowIndex);
+    minColIndex = min(minColIndex, nextColIndex);
+    maxColIndex = max(maxColIndex, nextColIndex);
     steps += 1;
     pipeShape = grid[nextRowIndex][nextColIndex];
     # take next step
@@ -209,22 +212,11 @@ while(not (nextRowIndex == startRowIndex and nextColIndex == startColIndex)):
         if pipeShape == '|':
             # going down again
             nextRowIndex += 1;
-            upOrDown = 'D';
-            if(rightOrLeft == 'R'):
-                # went right to get here, so look left for what's contained:
-                lookLeftFrom(prevRowIndex,prevColIndex);
-            elif(rightOrLeft == 'L'):
-                # went left to get here, so look right for what's contained:
-                lookRightFrom(prevRowIndex,prevColIndex);
         elif pipeShape == 'L':
             # going right
             nextColIndex += 1;
-            rightOrLeft = 'R';
-            # lookUpFrom(prevRowIndex,prevColIndex);
         elif pipeShape == 'J':
             nextColIndex -= 1;
-            rightOrLeft = 'L';
-            # lookUpFrom(prevRowIndex,prevColIndex);
         else:
             print('DONE' if pipeShape == 'S' else 'IMPOSSIBLE!')
     elif(nextRowIndex < prevRowIndex): # just went up
@@ -233,22 +225,11 @@ while(not (nextRowIndex == startRowIndex and nextColIndex == startColIndex)):
         if pipeShape == '|':
             # going up again
             nextRowIndex -= 1;
-            upOrDown = 'U'
-            if(rightOrLeft == 'R'):
-                # went right to get here, so look left for what's contained:
-                lookLeftFrom(prevRowIndex,prevColIndex);
-            elif(rightOrLeft == 'L'):
-                # went left to get here, so look right for what's contained:
-                lookRightFrom(prevRowIndex,prevColIndex);
         elif pipeShape == '7':
             # going left
             nextColIndex -= 1;
-            rightOrLeft = 'L';
-            # lookDownFrom(prevRowIndex,prevColIndex);
         elif pipeShape == 'F':
             nextColIndex += 1;
-            rightOrLeft = 'R';
-            # lookDownFrom(prevRowIndex,prevColIndex);
         else:
             print('DONE' if pipeShape == 'S' else 'IMPOSSIBLE!!')
     elif(nextColIndex > prevColIndex): # just went right
@@ -257,22 +238,11 @@ while(not (nextRowIndex == startRowIndex and nextColIndex == startColIndex)):
         if pipeShape == '-':
             # going right again
             nextColIndex += 1;
-            rightOrLeft = 'R';
-            if(upOrDown == 'D'):
-                # went down to get here, so look up for what's contained:
-                lookUpFrom(prevRowIndex,prevColIndex);
-            elif(upOrDown == 'U'):
-                # went up to get here, so look down for what's contained:
-                lookDownFrom(prevRowIndex,prevColIndex);
         elif pipeShape == '7':
             # going down:
             nextRowIndex += 1;
-            upOrDown = 'D';
-            # lookLeftFrom(prevRowIndex,prevColIndex);
         elif pipeShape == 'J':
             nextRowIndex -= 1;
-            upOrDown = 'U';
-            # lookLeftFrom(prevRowIndex,prevColIndex);
         else:
             print('DONE' if pipeShape == 'S' else 'IMPOSSIBLE!!!')
     elif(nextColIndex < prevColIndex): # just went left
@@ -281,29 +251,134 @@ while(not (nextRowIndex == startRowIndex and nextColIndex == startColIndex)):
         if pipeShape == '-':
             # going left again
             nextColIndex -= 1;
-            rightOrLeft = 'L';
-            if(upOrDown == 'D'):
-                # went down to get here, so look up for what's contained:
-                lookUpFrom(prevRowIndex,prevColIndex);
-            elif(upOrDown == 'U'):
-                # went up to get here, so look down for what's contained:
-                lookDownFrom(prevRowIndex,prevColIndex);
         elif pipeShape == 'F':
             # going down
             nextRowIndex += 1;
-            upOrDown = 'D';
-            # lookRightFrom(prevRowIndex,prevColIndex);
         elif pipeShape == 'L':
             nextRowIndex -= 1;
-            upOrDown = 'U';
-            # lookRightFrom(prevRowIndex,prevColIndex);
         else:
             print('DONE' if pipeShape == 'S' else 'IMPOSSIBLE!!!!')
     else:
         print('DONE' if pipeShape == 'S' else 'IMPOSSIBLE')
 print(math.ceil(steps / 2))
-print(enclosedPoints)
-print(len(enclosedPoints))
+
+enclosedSpots = set([]);
+leaks = []
+def outsidePipe(grid,row,col,minRow,maxRow,minCol,maxCol):
+    if(row == 0 or row == len(grid) - 1 or col == 0 or col == len(grid[0]) - 1):
+        return True;
+    #Check for escaping down:
+    couldEscape = True;
+    for rowI in range(row+1,maxRow+1):
+        if not grid[rowI][col] in ['7','J','|','.'] or not grid[rowI][col+1] in ['L','F','|','.']:
+            couldEscape = False;
+    if couldEscape:
+        return True;
+    couldEscape = True;
+    for rowI in range(row+1,maxRow+1):
+        if not grid[rowI][col-1] in ['7','J','|','.'] or not grid[rowI][col] in ['L','F','|','.']:
+            couldEscape = False;
+    if couldEscape:
+        return True;
+    # Check for escaping up:
+    couldEscape = True;
+    for rowI in range(minRow,row):
+        if not grid[rowI][col] in ['7','J','|','.'] or not grid[rowI][col+1] in ['L','F','|','.']:
+            couldEscape = False;
+    if couldEscape:
+        return True;
+    couldEscape = True;
+    for rowI in range(minRow,row):
+        if not grid[rowI][col-1] in ['7','J','|','.'] or not grid[rowI][col] in ['L','F','|','.']:
+            couldEscape = False;
+    if couldEscape:
+        return True;
+    
+    # check for escaping right
+    couldEscape = True;
+    for colI in range(col+1,maxCol+1):
+        if not grid[row][colI] in ['L','J','-','.'] or not grid[row+1][colI] in ['7','F','-','.']:
+            couldEscape = False;
+    if couldEscape:
+        return True;
+    couldEscape = True;
+    for colI in range(col+1,maxCol+1):
+        if not grid[row-1][colI] in ['L','J','-','.'] or not grid[row][colI] in ['7','F','-','.']:
+            couldEscape = False;
+    if couldEscape:
+        return True;
+    
+    # Check for escaping left
+    couldEscape = True;
+    for colI in range(minCol,col):
+        if not grid[row][colI] in ['L','J','-','.'] or not grid[row+1][colI] in ['7','F','-','.']:
+            couldEscape = False;
+    if couldEscape:
+        return True;
+    couldEscape = True;
+    for colI in range(minCol,col):
+        if not grid[row-1][colI] in ['L','J','-','.'] or not grid[row][colI] in ['7','F','-','.']:
+            couldEscape = False;
+    if couldEscape:
+        return True;
+    
+    return False;
+
+
+
+enclosedJunk = set([])
+for rowIndex in range(minRowIndex,maxRowIndex+1):
+    for colIndex in range(minColIndex,maxColIndex+1):
+        spot = f'{rowIndex},{colIndex}';      
+        if (grid[rowIndex][colIndex] == '.'):
+           enclosedSpots.add(spot);
+           if rowIndex == minRowIndex or rowIndex == maxRowIndex or colIndex == minColIndex or colIndex == maxColIndex:
+               leaks.append([rowIndex,colIndex])
+           if outsidePipe(grid,rowIndex,colIndex,minRowIndex,maxRowIndex,minColIndex,maxColIndex):
+               leaks.append([rowIndex,colIndex])
+#         elif not outsidePipe(grid,rowIndex,colIndex,minRowIndex,maxRowIndex,minColIndex,maxColIndex):
+#             if rowIndex > minRowIndex and rowIndex < maxRowIndex and colIndex > minColIndex and colIndex < maxColIndex:
+#                 enclosedSpots.add(spot);
+                   
+def removeGroundTouching(row,col):
+    spot = f'{row},{col}';
+    if spot in mainCircut:
+        return;
+    if(spot in enclosedSpots):
+        enclosedSpots.remove(spot);
+        if not spot in mainCircut:
+            if (row > minRowIndex):
+               removeGroundTouching(row-1,col);
+            if (row < maxRowIndex):
+                removeGroundTouching(row+1,col);
+            if (col > minColIndex):
+                removeGroundTouching(row,col-1);
+            if (col < maxColIndex):
+                removeGroundTouching(row,col+1);
+    if(spot in enclosedJunk):
+        enclosedJunk.remove(spot);
+        if not spot in mainCircut:
+            if (row > minRowIndex):
+               removeGroundTouching(row-1,col);
+            if (row < maxRowIndex):
+                removeGroundTouching(row+1,col);
+            if (col > minColIndex):
+                removeGroundTouching(row,col-1);
+            if (col < maxColIndex):
+                removeGroundTouching(row,col+1);
+        
+#print(len(enclosedSpots));
+print('next line is leaks')
+print(leaks);
+    
+for leak in leaks:
+    leakRow = leak[0];
+    leakCol = leak[1];
+    removeGroundTouching(leakRow,leakCol);
+    
+print(enclosedSpots);
+total = len(enclosedSpots) + len(enclosedJunk);
+print(total);
 
 # Part 2:
 # Counted 596 total . spots for possible enclosed tiles
@@ -313,6 +388,7 @@ print(len(enclosedPoints))
 # 420 is too high...
 # 335 is halfway between 250 and 420, but is too low
 # 377.5 is halfway between 335 and 420.  Guess 377 - doesn't tell if too high or too low
+# Got 401 from algorithm, but it was wrong
             
         
         
