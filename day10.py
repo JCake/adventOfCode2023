@@ -321,7 +321,7 @@ L7L-|JFLF7|7L|..L7-FJLF-JLJ7|L.||.7L-F.LF7-7.|FJ|.||J|7J7..F-7-FJ||.J7FLJ7LLJ7J|
 |L7J.|.L|J|F.L-.JJFJ|F|.L|.L-FJ||-|7F--.FF-7-|7-F7F--FF-J7.JL|-J7.L-LLJL--7J|JF|7|L|LFJ|.--J-JFJ.F--|L--777.LJ|7F||F7.F7||7|.F7..|.L-LJJ.L.|
 FJ-J-77..J7JF-JJJJLFJ|7--7-|.LJ|J.JJ-7-FFJ|.L||F7J|.|L|7|L77||LL-7|7F|||.F|7-----FJ|.||L7JFJ77|.-|7||FF|L7F7.-J-F-|L77FJ-|-|7L-JF77JLL7J|..|
 LJ.LF-FJ-L7-7JJL--F7-LFJ-L.7.L-J-|-L--.F7LJ---JJJ-L-FLLJ-.L|J|.L.L7-L7-F-LJLJ-|-|L-|--JJ|LJ-L-JFJL-JJL7-|LL7JJJL-LLFLFLJLJJLL-J-JL-.LLF-J--J''';
-strGrid = input3;
+strGrid = input5;
 grid = [list(row) for row in re.split("\n+", strGrid)];
 rowCount = len(grid)
 colCount = len(grid[0])
@@ -410,80 +410,76 @@ leaks = []
 def spotStr(ri,ci):
     return f'{ri},{ci}'
 
+escapeSpots = set([]);
+nonEscapeSpots = set([]);
+
+sys.setrecursionlimit(5000);   
+# NOTICE: They could escape going a combo of up/down/left/right as well!
 def outsidePipe(grid,row,col,minRow,maxRow,minCol,maxCol):
-    if(row == 0 or row == len(grid) - 1 or col == 0 or col == len(grid[0]) - 1):
+    thisSpotStr = spotStr(row,col)
+    if(thisSpotStr in escapeSpots):
         return True;
+    if(thisSpotStr in nonEscapeSpots):
+        return False;
+    if(row <= minRow or row >= maxRow or col <= minCol or col >= maxCol):
+        return not thisSpotStr in mainCircut;
     #Check for escaping down:
-    couldEscape = True;
     for rowI in range(row+1,maxRow+1):
-        if (spotStr(rowI,col) in mainCircut and not grid[rowI][col] in ['7','J','|']) :
-            couldEscape = False;
-        if spotStr(rowI,col+1) in mainCircut and not grid[rowI][col+1] in ['L','F','|','.']:
-            couldEscape = False;
-    if couldEscape:
-        return True;
-    couldEscape = True;
+        if (spotStr(rowI,col) in mainCircut and grid[rowI][col] in ['L','F','-']) :
+            if spotStr(rowI,col+1) in mainCircut and not grid[rowI][col+1] in ['L','F','|','.']:
+                if outsidePipe(grid,rowI+1,col,rowI,maxRow,minCol,maxCol) and outsidePipe(grid,rowI+1,col+1,rowI,maxRow,minCol,maxCol):
+                    escapeSpots.add(thisSpotStr);
+                    return True;
     for rowI in range(row+1,maxRow+1):
         if spotStr(rowI,col-1) in mainCircut and not grid[rowI][col-1] in ['7','J','|','.']:
-            couldEscape = False;
-        if spotStr(rowI,col) in mainCircut and not grid[rowI][col] in ['L','F','|','.']:
-            couldEscape = False;
-    if couldEscape:
-        return True;
+            if spotStr(rowI,col) in mainCircut and not grid[rowI][col] in ['L','F','|','.']:
+                if outsidePipe(grid,rowI+1,col-1,rowI,maxRow,minCol,maxCol) and outsidePipe(grid,rowI+1,col,rowI,maxRow,minCol,maxCol):
+                    escapeSpots.add(thisSpotStr);
+                    return True;
+
     # Check for escaping up:
-    couldEscape = True;
-    for rowI in range(minRow,row):
+    for rowI in reversed(range(minRow,row)):
         if spotStr(rowI,col) in mainCircut and not grid[rowI][col] in ['7','J','|','.']:
-            couldEscape = False;
-        if spotStr(rowI, col+1) in mainCircut and not grid[rowI][col+1] in ['L','F','|','.']:
-            couldEscape = False;
-    if couldEscape:
-        return True;
-    couldEscape = True;
-    for rowI in range(minRow,row):
+            if spotStr(rowI, col+1) in mainCircut and not grid[rowI][col+1] in ['L','F','|','.']:
+                if outsidePipe(grid,rowI-1,col,minRow,rowI,minCol,maxCol) and outsidePipe(grid,rowI-1,col+1,minRow,rowI,minCol,maxCol):
+                    escapeSpots.add(thisSpotStr);
+                    return True;
+    for rowI in reversed(range(minRow,row)):
         if spotStr(rowI,col-1) in mainCircut and not grid[rowI][col-1] in ['7','J','|','.']:
-            couldEscape = False;
-        if spotStr(rowI,col) in mainCircut and not grid[rowI][col] in ['L','F','|','.']:
-            couldEscape = False;
-    if couldEscape:
-        return True;
+            if spotStr(rowI,col) in mainCircut and not grid[rowI][col] in ['L','F','|','.']:
+                if outsidePipe(grid,rowI-1,col-1,minRow,rowI,minCol,maxCol) and outsidePipe(grid,rowI-1,col,minRow,rowI,minCol,maxCol):
+                    escapeSpots.add(thisSpotStr);
+                    return True;
     
     # check for escaping right
-    couldEscape = True;
     for colI in range(col+1,maxCol+1):
         if spotStr(row,colI) in mainCircut and not grid[row][colI] in ['L','J','-','.']:
-            couldEscape = False;
-        if spotStr(row+1,colI) in mainCircut and not grid[row+1][colI] in ['7','F','-','.']:
-            couldEscape = False;
-    if couldEscape:
-        return True;
-    couldEscape = True;
+            if spotStr(row+1,colI) in mainCircut and not grid[row+1][colI] in ['7','F','-','.']:
+                if outsidePipe(grid,row,colI+1,minRow,maxRow,colI,maxCol) and outsidePipe(grid,row+1,colI+1,minRow,maxRow,colI,maxCol):
+                    escapeSpots.add(thisSpotStr);
+                    return True;
     for colI in range(col+1,maxCol+1):
         if spotStr(row-1,colI) in mainCircut and not grid[row-1][colI] in ['L','J','-','.']:
-            couldEscape = False;
-        if spotStr(row, colI) in mainCircut and not grid[row][colI] in ['7','F','-','.']:
-            couldEscape = False;
-    if couldEscape:
-        return True;
+            if spotStr(row, colI) in mainCircut and not grid[row][colI] in ['7','F','-','.']:
+                if outsidePipe(grid,row-1,colI+1,minRow,maxRow,colI,maxCol) and outsidePipe(grid,row,colI+1,minRow,maxRow,colI,maxCol):
+                    escapeSpots.add(thisSpotStr);
+                    return True;
     
     # Check for escaping left
-    couldEscape = True;
-    for colI in range(minCol,col):
+    for colI in reversed(range(minCol,col)):
         if spotStr(row,colI) in mainCircut and not grid[row][colI] in ['L','J','-','.']:
-            couldEscape = False;
-        if spotStr(row+1,colI) in mainCircut and not grid[row+1][colI] in ['7','F','-','.']:
-            couldEscape = False;
-    if couldEscape:
-        return True;
-    couldEscape = True;
-    for colI in range(minCol,col):
+            if spotStr(row+1,colI) in mainCircut and not grid[row+1][colI] in ['7','F','-','.']:
+                if outsidePipe(grid,row,colI,minRow,maxRow,minCol,colI) and outsidePipe(grid,row+1,colI,minRow,maxRow,minCol,colI):
+                    escapeSpots.add(thisSpotStr);
+                    return True;
+    for colI in reversed(range(minCol,col)):
         if spotStr(row-1,colI) in mainCircut and not grid[row-1][colI] in ['L','J','-','.']:
-            couldEscape = False;
-        if spotStr(row,colI) in mainCircut and not grid[row][colI] in ['7','F','-','.']:
-            couldEscape = False;
-    if couldEscape:
-        return True;
-    
+            if spotStr(row,colI) in mainCircut and not grid[row][colI] in ['7','F','-','.']:
+                if outsidePipe(grid,row-1,colI+1,minRow,maxRow,minCol,colI) and outsidePipe(grid,row,colI+1,minRow,maxRow,minCol,colI):
+                    escapeSpots.add(thisSpotStr);
+                    return True;
+
+    nonEscapeSpots.add(thisSpotStr);
     return False;
 
 
@@ -534,13 +530,12 @@ for rowIndex in range(minRowIndex,maxRowIndex+1):
                enclosedSpots.add(spot);
            if rowIndex == minRowIndex or rowIndex == maxRowIndex or colIndex == minColIndex or colIndex == maxColIndex:
                leaks.append([rowIndex,colIndex])
-           elif outsidePipe(grid,rowIndex,colIndex,minRowIndex,maxRowIndex,minColIndex,maxColIndex):
-               leaks.append([rowIndex,colIndex])
            elif not hitsContainer(rowIndex,colIndex):
                leaks.append([rowIndex,colIndex]);
+           elif outsidePipe(grid,rowIndex,colIndex,minRowIndex,maxRowIndex,minColIndex,maxColIndex):
+               leaks.append([rowIndex,colIndex])
                 
-                
-sys.setrecursionlimit(5000);                
+                             
 def removeGroundTouching(row,col,toRemoveSet):
     spot = f'{row},{col}';
     if(spot in toRemoveSet):
