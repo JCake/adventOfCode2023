@@ -179,7 +179,7 @@ L---JF-JLJ.||-FJLJJ7
 7-L-JL7||F7|L7F-7F7|
 L.L7LFJ|||||FJL7||LJ
 L7JLJL-JLJLJL--JLJ.L''';
-strGrid = input5;
+strGrid = input3;
 grid = [list(row) for row in re.split("\n+", strGrid)];
 rowCount = len(grid)
 colCount = len(grid[0])
@@ -191,14 +191,14 @@ steps = 0;
 prevRowIndex = startRowIndex;
 prevColIndex = startColIndex;
 nextRowIndex = startRowIndex;
-nextColIndex = startColIndex + 1; # +1 for all but input6
+nextColIndex = startColIndex +1; # +1 for all but input6
 minRowIndex = startRowIndex;
 maxRowIndex = startRowIndex;
 minColIndex = startColIndex; # start for all but input6
 maxColIndex = startColIndex+1; #+1 for all but input6
-mainCircut = set([f'{startRowIndex}{startColIndex}']);
+mainCircut = set([f'{startRowIndex},{startColIndex}']);
 while(not (nextRowIndex == startRowIndex and nextColIndex == startColIndex)):
-    mainCircut.add(f'{nextRowIndex}{nextColIndex}');
+    mainCircut.add(f'{nextRowIndex},{nextColIndex}');
     minRowIndex = min(minRowIndex, nextRowIndex);
     maxRowIndex = max(maxRowIndex, nextRowIndex);
     minColIndex = min(minColIndex, nextColIndex);
@@ -324,7 +324,48 @@ def outsidePipe(grid,row,col,minRow,maxRow,minCol,maxCol):
     
     return False;
 
+def spotStr(ri,ci):
+    return f'{ri},{ci}'
 
+print(mainCircut);
+
+def hitsContainer(rowIndex, colIndex):
+    mainPipeUp = False;
+    for ri in range(minRowIndex,rowIndex):
+        thisSpot = spotStr(ri,colIndex);
+        if thisSpot in mainCircut:
+            mainPipeUp = True;
+            break;
+    if not mainPipeUp:
+        return False;
+    
+    mainPipeDown = False;
+    for ri in range(rowIndex+1,maxRowIndex+1):
+        if spotStr(ri,colIndex) in mainCircut:
+            mainPipeDown = True;
+            break;
+    if not mainPipeDown:
+        return False;
+    
+    
+    mainPipeLeft = False;
+    for ci in range(minColIndex,colIndex):
+        if spotStr(rowIndex,ci) in mainCircut:
+            mainPipeLeft = True;
+            break;
+    if not mainPipeLeft:
+        return False;
+    
+    mainPipeRight = False;
+    for ci in range(colIndex+1,maxColIndex+1):
+        if spotStr(rowIndex,ci) in mainCircut:
+            mainPipeRight = True;
+            break;
+    if not mainPipeRight:
+        return False;
+    
+    return True;
+    
 
 enclosedJunk = set([])
 for rowIndex in range(minRowIndex,maxRowIndex+1):
@@ -336,9 +377,9 @@ for rowIndex in range(minRowIndex,maxRowIndex+1):
                leaks.append([rowIndex,colIndex])
            if outsidePipe(grid,rowIndex,colIndex,minRowIndex,maxRowIndex,minColIndex,maxColIndex):
                leaks.append([rowIndex,colIndex])
-#         elif not outsidePipe(grid,rowIndex,colIndex,minRowIndex,maxRowIndex,minColIndex,maxColIndex):
-#             if rowIndex > minRowIndex and rowIndex < maxRowIndex and colIndex > minColIndex and colIndex < maxColIndex:
-#                 enclosedSpots.add(spot);
+        elif (not spot in mainCircut and (hitsContainer(rowIndex,colIndex))):
+            if not outsidePipe(grid,rowIndex,colIndex,minRowIndex,maxRowIndex,minColIndex,maxColIndex):
+                enclosedJunk.add(spot);
                    
 def removeGroundTouching(row,col):
     spot = f'{row},{col}';
@@ -365,19 +406,18 @@ def removeGroundTouching(row,col):
             if (col > minColIndex):
                 removeGroundTouching(row,col-1);
             if (col < maxColIndex):
-                removeGroundTouching(row,col+1);
-        
-#print(len(enclosedSpots));
-print('next line is leaks')
-print(leaks);
+                removeGroundTouching(row,col+1);        
     
+
 for leak in leaks:
     leakRow = leak[0];
     leakCol = leak[1];
     removeGroundTouching(leakRow,leakCol);
     
 print(enclosedSpots);
+print(enclosedJunk);
 total = len(enclosedSpots) + len(enclosedJunk);
+print(len(enclosedSpots));
 print(total);
 
 # Part 2:
@@ -389,6 +429,7 @@ print(total);
 # 335 is halfway between 250 and 420, but is too low
 # 377.5 is halfway between 335 and 420.  Guess 377 - doesn't tell if too high or too low
 # Got 401 from algorithm, but it was wrong
+# Got 371 from latest algoirthm, but also wrong
             
         
         
