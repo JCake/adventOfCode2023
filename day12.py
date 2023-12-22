@@ -1010,8 +1010,12 @@ def gt0(num):
     return num > 0;
 def isSpring(char):
     return char == '#';
+def isBroken(char):
+    return char == '.';
 def countSprings(s):
     return len(list(filter(isSpring, list(s))));
+def countBroken(s):
+    return len(list(filter(isBroken, list(s))));
 def countSpringsInGroups(s):
     workingSections = re.split("\.+",s);
     return list(filter(gt0, [int(len(x)) for x in workingSections]))
@@ -1020,10 +1024,12 @@ def endsWithSpring(s):
 totalPossibleCount = 0;
 for line in lines:
     springsAndCounts = line.split(' ')
-    springs = f'{springsAndCounts[0]}?{springsAndCounts[0]}?{springsAndCounts[0]}?{springsAndCounts[0]}?{springsAndCounts[0]}'
-    countsStr = f'{springsAndCounts[1]},{springsAndCounts[1]},{springsAndCounts[1]},{springsAndCounts[1]},{springsAndCounts[1]}'
+    springs = f'{springsAndCounts[0]}?{springsAndCounts[0]}'#?{springsAndCounts[0]}'#?{springsAndCounts[0]}?{springsAndCounts[0]}'
+    countsStr = f'{springsAndCounts[1]},{springsAndCounts[1]}'#,{springsAndCounts[1]}'#,{springsAndCounts[1]},{springsAndCounts[1]}'
     targetCounts = [int(x) for x in countsStr.split(',')]
     targetTotal = sum(targetCounts);
+    overallTotal = len(springs);
+    brokenTotal = overallTotal - targetTotal;
     unknowns = [];
     for index in range(0,len(springs)):
         if springs[index] == '?':
@@ -1031,13 +1037,15 @@ for line in lines:
     untilFirstUnknown = springs.split('?')[0];
     groupCounts = countSpringsInGroups(untilFirstUnknown);
     onWorkingSpring = endsWithSpring(untilFirstUnknown);
-    options = [{'s':springs,'c':groupCounts,'onWorkingSpring': onWorkingSpring}];
+    options = [{'s':springs,'c':groupCounts, 'springCount': countSprings(springs),'brokenCount': countBroken(springs),'onWorkingSpring': onWorkingSpring}];
     while len(unknowns) > 0:
         nextIndex = unknowns[0]
         newOptions = [];
         for option in options:
             os = option['s'];
             oc = option['c'];
+            osc = option['springCount'];
+            obc = option['brokenCount'];
             oOnWorking = option['onWorkingSpring']
             nextSetUntilUnknown = os[nextIndex+1:].split('?')[0];
             nextGroupCounts = countSpringsInGroups(nextSetUntilUnknown);
@@ -1047,12 +1055,12 @@ for line in lines:
                 if (withNotWorkingNext == targetCounts):
                    newOptions.append({'s':f'{os[:nextIndex]}.{os[nextIndex+1:]}','c': withNotWorkingNext, 'onWorkingSpring': onWorkingNext}); 
             elif not onWorkingNext:
-                if (withNotWorkingNext == targetCounts[:len(withNotWorkingNext)]):
-                    newOptions.append({'s':f'{os[:nextIndex]}.{os[nextIndex+1:]}','c': withNotWorkingNext, 'onWorkingSpring': onWorkingNext});
+                if (withNotWorkingNext == targetCounts[:len(withNotWorkingNext)]) and obc + 1 <= brokenTotal:
+                    newOptions.append({'s':f'{os[:nextIndex]}.{os[nextIndex+1:]}','c': withNotWorkingNext,'springCount':osc,'brokenCount':obc+1,'onWorkingSpring': onWorkingNext});
             else:
                 lenMinus1 = len(withNotWorkingNext) - 1;
-                if(len(withNotWorkingNext) <= len(targetCounts) and withNotWorkingNext[:-1] == targetCounts[:lenMinus1] and withNotWorkingNext[-1] <= targetCounts[lenMinus1]):
-                    newOptions.append({'s':f'{os[:nextIndex]}.{os[nextIndex+1:]}','c': withNotWorkingNext, 'onWorkingSpring': onWorkingNext});
+                if(obc + 1 <= brokenTotal and len(withNotWorkingNext) <= len(targetCounts) and withNotWorkingNext[:-1] == targetCounts[:lenMinus1] and withNotWorkingNext[-1] <= targetCounts[lenMinus1]):
+                    newOptions.append({'s':f'{os[:nextIndex]}.{os[nextIndex+1:]}','c': withNotWorkingNext,'springCount':osc,'brokenCount':obc+1,'onWorkingSpring': onWorkingNext});
                                   
             updatedCounts = list(oc);
             if oOnWorking:
@@ -1070,12 +1078,12 @@ for line in lines:
                 if (updatedCounts == targetCounts):
                     newOptions.append({'s':f'{os[:nextIndex]}#{os[nextIndex+1:]}','c':updatedCounts,'onWorkingSpring': onWorkingNext});
             elif not onWorkingNext:
-                if (updatedCounts == targetCounts[:len(updatedCounts)]):
-                    newOptions.append({'s':f'{os[:nextIndex]}#{os[nextIndex+1:]}','c':updatedCounts,'onWorkingSpring': onWorkingNext});
+                if (updatedCounts == targetCounts[:len(updatedCounts)]) and osc + 1 <= targetTotal:
+                    newOptions.append({'s':f'{os[:nextIndex]}#{os[nextIndex+1:]}','c':updatedCounts,'springCount':osc+1,'brokenCount':obc,'onWorkingSpring': onWorkingNext});
             else:                   
                 lenMinus1 = len(updatedCounts) - 1;
-                if(len(updatedCounts) <= len(targetCounts) and updatedCounts[:-1] == targetCounts[:lenMinus1] and updatedCounts[-1] <= targetCounts[lenMinus1]):               
-                    newOptions.append({'s':f'{os[:nextIndex]}#{os[nextIndex+1:]}','c':updatedCounts,'onWorkingSpring': onWorkingNext});
+                if(osc + 1 <= targetTotal and len(updatedCounts) <= len(targetCounts) and updatedCounts[:-1] == targetCounts[:lenMinus1] and updatedCounts[-1] <= targetCounts[lenMinus1]):               
+                    newOptions.append({'s':f'{os[:nextIndex]}#{os[nextIndex+1:]}','c':updatedCounts,'springCount':osc+1,'brokenCount':obc,'onWorkingSpring': onWorkingNext});
         options = newOptions;
         unknowns = unknowns[1:]
     possibleCount = len(options);
@@ -1088,6 +1096,13 @@ for line in lines:
     print(possibleCount);
     totalPossibleCount += possibleCount;
 print(totalPossibleCount);
+# For Part 2, tried 'interpolating' and got this is, which is too low:
+# 110168502168187
+# Tried "rounding up" on the 'interpoloating' and got this, which is also too low:
+# 110465244561533
+# These are too low because I wasn't using the full input... oops
+
+
         
         
         
