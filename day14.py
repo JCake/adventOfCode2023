@@ -108,9 +108,40 @@ O##..OO..O#.#..O...#.....OOO......O.....O.....O#OO....O...O....O.#...#...OO...#.
 .#..O...##.O.....##.#....#O.O.##..#.......O.....#.#..O##........#.O..........#.#O.#..#......#O#..#O.
 OO.#...O...O#.......OO.OOO#.O#....#.OO...O..OO....OO#O.O#....O..O....O..O.O..O....O........O.O.#....
 .O...#.......O..#OO.....#O.O...#O.#O..#.#.....#....O....#.....O..#O.#.O......O.O.OOOO.....O...#....#
-.#OO.....#.#O..O........O.#O..O..#......O.O....OO.#..OO#..O#.#O.#O.O...#......O#O....#.#O...#...#.OO''';
-rows = [list(row) for row in (re.split('\n', input1))]
-for cycle in range(0,1000000000):
+.#OO.....#.#O..O........O.#O..O..#......O.O....OO.#..OO#..O#.#O.#O.O...#......O#O....#.#O...#...#.OO'''
+rows = [list(row) for row in (re.split('\n', input2))]
+
+rockCount = 0;
+for row in rows:
+    for col in row:
+        if col == 'O':
+            rockCount += 1;
+print(rockCount);
+
+minSum = 0;
+for rowIndex in reversed(range(0,len(rows))):
+    for colIndex in range(0,len(rows[0])):
+        if not rows[rowIndex][colIndex] == '#':
+            if not rows[rowIndex-1][colIndex] == '#':
+                minSum += (len(rows) - rowIndex);
+                rockCount -= 1;
+        if rockCount == 0:
+            print(minSum);
+            break;
+    if rockCount == 0:
+        break;
+
+minActualSum = 9999999;
+for cycle in range(0,1000): #1000000000
+    rowsMap = {};
+    flattenedRows = [];
+    for row in rows:
+        flattenedRows.append("".join(row))
+    flattenedGrid = "".join(flattenedRows)
+    if flattenedGrid in rowsMap:
+        print (rowsMap[flattenedGrid])
+    else:
+        rowsMap[flattenedGrid] = cycle
     # North:
     for rowIndex in range(1,len(rows)):
         row = rows[rowIndex];
@@ -165,11 +196,37 @@ for cycle in range(0,1000000000):
                 if not newColIndex == colIndex:
                     rows[rowIndex][newColIndex] = 'O';
                     rows[rowIndex][colIndex] = '.';
-sum = 0;
-for rowIndex in range(0,len(rows)):
-    for spot in rows[rowIndex]:
-        if spot == 'O':
-            sum += (len(rows) - rowIndex);
-print(sum);
+    sum = 0;
+    for rowIndex in range(0,len(rows)):
+        for spot in rows[rowIndex]:
+            if spot == 'O':
+                sum += (len(rows) - rowIndex);
+    if sum < minActualSum:
+        minActualSum = sum;
+print(minActualSum);
+
+# Part 1:
+# 109665
+
+# 101199 (001r)
+# 101046 (005r)
+# 101242 (010r)
+# 101102 (020r)
+# 100902 (030r)
+# 100473 (040r)
+#  99866 (050r)
+#  96645 (100r)
+#  96079 (200r)
+#  96061 (300r)
+#  96063 (400r)
+#  96064 (800r)
+#  96079 1600r
+#  24898 -- min possible
+
+# Guess of 96063 is TOO HIGH
+# Guess of 60480 (halfway between this and min) is TOO LOW
+# Guess of 78271 (halfway between previous two) is TOO LOW
+
+# 96061 was the minimum over 1000 iterations and this happened to be correct
                 
     
