@@ -120,7 +120,6 @@ input2 = r'''\..............................................................-...
 ...................|.......\......././................|..-......\....-.....-|...|.....-.......................
 ..........................-.......................-.....-......-............\.....\....\.-....................''';
 grid = [list(row) for row in re.split('\n',input2)]
-gridCopy = [list(row) for row in re.split('\n',input2)]
 prevLightBeams = set([]);
 lightBeams = set([((0,0),'R')]);
 locIndex = 0;
@@ -191,24 +190,16 @@ def processLoc(loc,direct,newLightBeams):
                 goRightFrom(nextLoc,newLightBeams);
             elif nextSquare == '/':
                 goLeftFrom(nextLoc,newLightBeams);
-# TODO need to figure out how to end...
-while not prevLightBeams == lightBeams:
+counts = [];
+lenToCheck = len(grid);
+while len(counts) < lenToCheck or (len(counts) >= lenToCheck and not len(set(counts[0-lenToCheck:])) == 1):
+    counts.append(len(spotsLit));
     newLightBeams = [];
     for beam in lightBeams:
         loc = beam[locIndex];
         direct = beam[dirIndex]
         processLoc(loc,direct,newLightBeams);
-    prevLightBeams = lightBeams.copy();
     lightBeams = set(newLightBeams);
-    print(len(prevLightBeams));
-    print(len(lightBeams));
-    print(lightBeams);
-    for spot in spotsLit:
-        gridCopy[spot[0]][spot[1]] = '#';
-    for row in gridCopy:
-        print(''.join(row));
-    print('\n');
-    print(len(spotsLit));
 print(spotsLit);
 print(len(spotsLit));
         
