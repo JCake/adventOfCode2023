@@ -1,4 +1,5 @@
 import re;
+import math;
 input1 = r'''.|...\....
 |.-.\.....
 .....|-...
@@ -120,86 +121,111 @@ input2 = r'''\..............................................................-...
 ...................|.......\......././................|..-......\....-.....-|...|.....-.......................
 ..........................-.......................-.....-......-............\.....\....\.-....................''';
 grid = [list(row) for row in re.split('\n',input2)]
-prevLightBeams = set([]);
-lightBeams = set([((0,0),'R')]);
 locIndex = 0;
 dirIndex = 1;
-spotsLit = set([(0,0)]);
-def goDownFrom(nextLoc,newLightBeams):
-    processLoc(nextLoc,'D',newLightBeams);
-def goUpFrom(nextLoc,newLightBeams):
-    processLoc(nextLoc,'U',newLightBeams)
-def goRightFrom(nextLoc,newLightBeams):
-    processLoc(nextLoc,'R',newLightBeams);
-def goLeftFrom(nextLoc,newLightBeams):
-    processLoc(nextLoc,'L',newLightBeams);
-def processLoc(loc,direct,newLightBeams):
-    if direct == 'R':
-        if loc[1] + 1 < len(grid[0]):
-            nextLoc = (loc[0],loc[1]+1)
-            spotsLit.add(nextLoc);
-            nextSquare = grid[nextLoc[0]][nextLoc[1]]
-            if nextSquare == '.' or nextSquare == '-':
-                newLightBeams.append((nextLoc,'R'))
-            elif nextSquare == '|':
-                goUpFrom(nextLoc,newLightBeams);
-                goDownFrom(nextLoc,newLightBeams);
-            elif nextSquare == '\\':
-                goDownFrom(nextLoc,newLightBeams);
-            elif nextSquare == '/':
-                goUpFrom(nextLoc,newLightBeams);
-    if direct == 'L':
-        if loc[1] - 1 >= 0:
-            nextLoc = (loc[0],loc[1]-1)
-            spotsLit.add(nextLoc);
-            nextSquare = grid[nextLoc[0]][nextLoc[1]]
-            if nextSquare == '.' or nextSquare == '-':
-                newLightBeams.append((nextLoc,'L'))
-            elif nextSquare == '|':
-                goUpFrom(nextLoc,newLightBeams);
-                goDownFrom(nextLoc,newLightBeams);
-            elif nextSquare == '\\':
-                goUpFrom(nextLoc,newLightBeams);
-            elif nextSquare == '/':
-                goDownFrom(nextLoc,newLightBeams);
-    if direct == 'U':
-        if loc[0] - 1 >= 0:
-            nextLoc = (loc[0]-1,loc[1])
-            spotsLit.add(nextLoc);
-            nextSquare = grid[nextLoc[0]][nextLoc[1]]
-            if nextSquare == '.' or nextSquare == '|':
-                newLightBeams.append((nextLoc,'U'))
-            elif nextSquare == '-':
-                goLeftFrom(nextLoc,newLightBeams);
-                goRightFrom(nextLoc,newLightBeams);
-            elif nextSquare == '\\':
-                goLeftFrom(nextLoc,newLightBeams);
-            elif nextSquare == '/':
-                goRightFrom(nextLoc,newLightBeams);
-    if direct == 'D':
-        if loc[0] + 1 < len(grid):
-            nextLoc = (loc[0]+1,loc[1])
-            spotsLit.add(nextLoc);
-            nextSquare = grid[nextLoc[0]][nextLoc[1]]
-            if nextSquare == '.' or nextSquare == '|':
-                newLightBeams.append((nextLoc,'D'))
-            elif nextSquare == '-':
-                goLeftFrom(nextLoc,newLightBeams);
-                goRightFrom(nextLoc,newLightBeams);
-            elif nextSquare == '\\':
-                goRightFrom(nextLoc,newLightBeams);
-            elif nextSquare == '/':
-                goLeftFrom(nextLoc,newLightBeams);
-counts = [];
-lenToCheck = len(grid);
-while len(counts) < lenToCheck or (len(counts) >= lenToCheck and not len(set(counts[0-lenToCheck:])) == 1):
-    counts.append(len(spotsLit));
-    newLightBeams = [];
-    for beam in lightBeams:
-        loc = beam[locIndex];
-        direct = beam[dirIndex]
-        processLoc(loc,direct,newLightBeams);
-    lightBeams = set(newLightBeams);
-print(spotsLit);
-print(len(spotsLit));
+
+def findNumberLit(startingBeam):
+    prevLightBeams = set([]);
+    lightBeams = set([startingBeam]);
+    spotsLit = set([startingBeam[locIndex]]);
+    def goDownFrom(nextLoc,newLightBeams):
+        processLoc(nextLoc,'D',newLightBeams);
+    def goUpFrom(nextLoc,newLightBeams):
+        processLoc(nextLoc,'U',newLightBeams)
+    def goRightFrom(nextLoc,newLightBeams):
+        processLoc(nextLoc,'R',newLightBeams);
+    def goLeftFrom(nextLoc,newLightBeams):
+        processLoc(nextLoc,'L',newLightBeams);
+    def processLoc(loc,direct,newLightBeams):
+        if direct == 'R':
+            if loc[1] + 1 < len(grid[0]):
+                nextLoc = (loc[0],loc[1]+1)
+                spotsLit.add(nextLoc);
+                nextSquare = grid[nextLoc[0]][nextLoc[1]]
+                if nextSquare == '.' or nextSquare == '-':
+                    newLightBeams.append((nextLoc,'R'))
+                elif nextSquare == '|':
+                    goUpFrom(nextLoc,newLightBeams);
+                    goDownFrom(nextLoc,newLightBeams);
+                elif nextSquare == '\\':
+                    goDownFrom(nextLoc,newLightBeams);
+                elif nextSquare == '/':
+                    goUpFrom(nextLoc,newLightBeams);
+        if direct == 'L':
+            if loc[1] - 1 >= 0:
+                nextLoc = (loc[0],loc[1]-1)
+                spotsLit.add(nextLoc);
+                nextSquare = grid[nextLoc[0]][nextLoc[1]]
+                if nextSquare == '.' or nextSquare == '-':
+                    newLightBeams.append((nextLoc,'L'))
+                elif nextSquare == '|':
+                    goUpFrom(nextLoc,newLightBeams);
+                    goDownFrom(nextLoc,newLightBeams);
+                elif nextSquare == '\\':
+                    goUpFrom(nextLoc,newLightBeams);
+                elif nextSquare == '/':
+                    goDownFrom(nextLoc,newLightBeams);
+        if direct == 'U':
+            if loc[0] - 1 >= 0:
+                nextLoc = (loc[0]-1,loc[1])
+                spotsLit.add(nextLoc);
+                nextSquare = grid[nextLoc[0]][nextLoc[1]]
+                if nextSquare == '.' or nextSquare == '|':
+                    newLightBeams.append((nextLoc,'U'))
+                elif nextSquare == '-':
+                    goLeftFrom(nextLoc,newLightBeams);
+                    goRightFrom(nextLoc,newLightBeams);
+                elif nextSquare == '\\':
+                    goLeftFrom(nextLoc,newLightBeams);
+                elif nextSquare == '/':
+                    goRightFrom(nextLoc,newLightBeams);
+        if direct == 'D':
+            if loc[0] + 1 < len(grid):
+                nextLoc = (loc[0]+1,loc[1])
+                spotsLit.add(nextLoc);
+                nextSquare = grid[nextLoc[0]][nextLoc[1]]
+                if nextSquare == '.' or nextSquare == '|':
+                    newLightBeams.append((nextLoc,'D'))
+                elif nextSquare == '-':
+                    goLeftFrom(nextLoc,newLightBeams);
+                    goRightFrom(nextLoc,newLightBeams);
+                elif nextSquare == '\\':
+                    goRightFrom(nextLoc,newLightBeams);
+                elif nextSquare == '/':
+                    goLeftFrom(nextLoc,newLightBeams);
+    counts = [];
+    lenToCheck = math.ceil(len(grid) / 2);
+    while len(counts) < lenToCheck or (len(counts) >= lenToCheck and not len(set(counts[0-lenToCheck:])) == 1):
+        counts.append(len(spotsLit));
+        newLightBeams = [];
+        for beam in lightBeams:
+            loc = beam[locIndex];
+            direct = beam[dirIndex]
+            processLoc(loc,direct,newLightBeams);
+        lightBeams = set(newLightBeams);
+    return len(spotsLit);
+print(findNumberLit(((0,0),'R')))
+
+maxSpotsLit = 0;
+for row in range(0,len(grid)):
+    litCount = findNumberLit(((row,0),'R'))
+    if litCount > maxSpotsLit:
+        maxSpotsLit = litCount;
+    litCount = findNumberLit(((row,len(grid[0])-1),'L'))
+    if litCount > maxSpotsLit:
+        maxSpotsLit = litCount;
+    if row % 21 == 20:
+        print(maxSpotsLit);
+for col in range(0,len(grid[0])):
+    litCount = findNumberLit(((0,col),'D'))
+    if litCount > maxSpotsLit:
+        maxSpotsLit = litCount;
+    litCount = findNumberLit(((len(grid) - 1, col),'U'))
+    if litCount > maxSpotsLit:
+        maxSpotsLit = litCount;
+    if col % 21 == 20:
+        print(maxSpotsLit);
+print(maxSpotsLit);
+
+
         
