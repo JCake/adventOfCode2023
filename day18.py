@@ -673,7 +673,7 @@ L 5 (#471b52)
 U 6 (#207783)
 L 3 (#128cf2)
 U 8 (#49dea3)'''
-steps = re.split('\n',input1)
+steps = re.split('\n',input2)
 maxUp = 0;
 maxDown = 0;
 maxRight = 0;
@@ -691,8 +691,7 @@ for step in steps:
         
 class DigRow:
   def __init__(self):
-    self.minCol = maxRight
-    self.maxCol = -maxLeft
+    self.cols = []
 
 digRows = [];
 for r in range(0,maxDown+maxUp+1):
@@ -700,33 +699,53 @@ for r in range(0,maxDown+maxUp+1):
 
 y = maxUp
 x = 0
-digRows[y].minCol = 0
+digRows[y].cols = [0]
 for step in steps:
     parts = step.split(' ');
-    newY = y;
-    if parts[0] == 'D':
-        newY += int(parts[1])
-    elif parts[0] == 'U':
-        newY -= int(parts[1])
-    elif parts[0] == 'L':
-        x -= int(parts[1])
-    elif parts[0] == 'R':
-        x += int(parts[1])
+    if parts[0] == 'D' or parts[0] == 'U':
+        newY = y;
+        if parts[0] == 'D':
+            newY += int(parts[1])
+        else:
+            newY -= int(parts[1])
+        for row in range(min(newY,y),max(newY,y)+1):
+            digRow = digRows[row]
+            digRow.cols.append(x)
+        y = newY;
+    else:
+        rowCols = digRows[y].cols
+        if parts[0] == 'L':
+            x -= int(parts[1])
+            if len(rowCols) > 1 and min(digRows[y].cols) == digRows[y].cols[-1]:
+                rowCols[-1] = x
+            else:
+                digRows[y].cols.append(x);
+        elif parts[0] == 'R':
+            x += int(parts[1])
+            if len(rowCols) > 1 and max(digRows[y].cols) == digRows[y].cols[-1]:
+                rowCols[-1] = x
+            else:
+                digRows[y].cols.append(x);
         
-    for row in range(min(newY,y),max(newY,y)+1):
-        digRow = digRows[row];
-        if x > digRow.maxCol:
-            digRow.maxCol = x;
-        if x < digRow.minCol:
-            digRow.minCol = x;
-    y = newY;
+        
+        
+
         
 totalFilled = 0;
-for row in digRows:
-    print(f'{row.minCol},{row.maxCol}')
-    if row.minCol <= row.maxCol:
-        totalFilled += (row.maxCol - row.minCol + 1)
+prevSortedCols = [];
+for rowI, row in enumerate(digRows):
+    if len(row.cols) > 0:
+        sortedCols = sorted(list(set(row.cols)))
+        print(sortedCols)
+        totalFilled += sortedCols[-1] - sortedCols[0] + 1
+        if len(sortedCols) > 3 and len(prevSortedCols) == len(sortedCols):
+            totalFilled -= (sortedCols[-2] - sortedCols[1])
+        prevSortedCols = sortedCols;
 print(totalFilled);
 # 65835 is too high
 # 62293 is still too high
-# hypothesis -- we're digging around our digging so we can't just do max and min - it's the pipe maze all over again!
+# hypothesis -- we're digging around our digging so we can't just do max and min
+# - it's the pipe maze all over again!
+# tried digging out a chunk in the middle and got 55908, but not correct
+# suspect I'm removing too much now
+# may need to fill things in as I go...
