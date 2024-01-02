@@ -799,7 +799,7 @@ sc{a<2799:A,m>1492:fr,a>2838:R,xcg}
 {x=620,m=1559,a=51,s=816}
 {x=286,m=195,a=797,s=2935}'''
 
-rulesAndParts = re.split('\n\n',input2)
+rulesAndParts = re.split('\n\n',input1)
 rules = rulesAndParts[0]
 partsSection = rulesAndParts[1]
 rawParts = [part[1:-1].split(',') for part in re.split('\n',partsSection)]
@@ -846,3 +846,72 @@ for part in parts:
     if outcome == 'A':
         acceptedSum += (part['x'] + part['m'] + part['a'] + part['s'])
 print(acceptedSum)
+
+# TODO part 2 - find what combos can map to A
+class Node:
+  def __init__(self,name):
+    self.ranges = {};
+    self.name = name;
+initialNode = Node('in')
+allNodes = [initialNode]
+allRulesForAccepting = [];
+allRulesForRejecting = [];
+def findChildNodes(parentNode):
+    rules = rulesMap[parentNode.name]
+    rangesSoFar = parentNode.ranges.copy()
+    for rule in rules:
+        if ':' in rule:
+            checkAndOutcome = rule.split(':')
+            check = checkAndOutcome[0];
+            outcome = checkAndOutcome[1];
+            if '<' in check or '>' in check:
+                fieldAndValue = re.split(r'[<>]', check);
+                field = fieldAndValue[0];
+                value = int(fieldAndValue[1])
+                if outcome == 'A':
+                    allRulesForAccepting.append(f'{rangesSoFar.copy()}')
+                elif outcome == 'R':
+                    allRulesForRejecting.append(f'{rangesSoFar.copy()}')
+                else:
+                    nextNode = Node(outcome)
+                    nextNode.ranges = rangesSoFar.copy();
+                    if field in nextNode.ranges:
+                        fieldRange = nextNode.ranges[field];
+                        if '<' in check:
+                            nextNode.ranges[field] = (fieldRange[0], min(value-1, fieldRange[1]))
+                        else:
+                            nextNode.ranges[field] = (max(value+1, fieldRange[0]), fieldRange[1])
+                    else:
+                        nextNode.ranges[field] = (0,value-1) if '<' in check else (value+1,4000)
+                    allNodes.append(nextNode);
+                    findChildNodes(nextNode);
+                    if field in rangesSoFar:
+                        fieldRange = rangesSoFar[field];
+                        if '>' in check:
+                            rangesSoFar[field] = (fieldRange[0], min(value, fieldRange[1]))
+                        else:
+                            rangesSoFar[field] = (max(value, fieldRange[0]), fieldRange[1])
+                    else:
+                        rangesSoFar[field] = (0,value) if '>' in check else (value,4000)
+        else:
+            outcome = rule;
+            if outcome == 'A':
+                allRulesForAccepting.append(f'{rangesSoFar.copy()}')
+            elif outcome == 'R':
+                allRulesForRejecting.append(f'{rangesSoFar.copy()}')
+            else:
+                nextNode = Node(outcome);
+                nextNode.ranges = rangesSoFar.copy();
+                allNodes.append(nextNode);
+                findChildNodes(nextNode);
+                
+            
+findChildNodes(initialNode)
+for node in allNodes:
+    print(f'{node.name} : {node.ranges}');
+print('acceptance:')
+for successCombos in set(allRulesForAccepting):
+    print(successCombos)
+print('rejection:')
+for failureCombos in set(allRulesForRejecting):
+    print(failureCombos)
